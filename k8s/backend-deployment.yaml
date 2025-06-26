@@ -18,7 +18,8 @@ spec:
           image: backend:latest
           ports:   
             - containerPort: 5000
-          env:
+          e
+          nv:
             - name: DB_HOST
               value: "postgres"
             - name: DB_USER

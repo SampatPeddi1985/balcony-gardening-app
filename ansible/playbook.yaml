@@ -1,0 +1,61 @@
+---
+- name: Deploy Balcony Gardening App to EKS
+  hosts: all
+  become: yes
+  vars:
+    eks_cluster_name: "balcony-gardening-cluster"
+    aws_region: "us-west-2"
+    app_repo: "https://github.com/YOUR_USERNAME/balcony-gardening-app.git"
+    app_dir: "/opt/balcony-gardening-app"
+
+  tasks:
+
+    - name: Install dependencies (Ubuntu)
+      apt:
+        name:
+          - curl
+          - unzip
+          - python3-pip
+          - apt-transport-https
+          - ca-certificates
+        update_cache: yes
+
+    - name: Install Docker
+      shell: |
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sh get-docker.sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Install AWS CLI v2
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -q awscliv2.zip
+        ./aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Configure AWS CLI
+      shell: |
+        aws configure set region {{ aws_region }}
+        aws configure set output json
+
+    - name: Update kubeconfig for EKS
+      shell: |
+        aws eks update-kubeconfig --region {{ aws_region }} --name {{ eks_cluster_name }}
+
+    - name: Clone Balcony Gardening app
+      git:
+        repo: "{{ app_repo }}"
+        dest: "{{ app_dir }}"
+        version: main
+
+    - name: Deploy Kubernetes resources
+      shell: kubectl apply -f {{ app_dir }}/k8s/

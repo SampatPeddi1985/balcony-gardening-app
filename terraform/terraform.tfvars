@@ -1,0 +1,10 @@
+region          = "us-west-2"
+cluster_name    = "balcony-gardening-cluster"
+vpc_cidr        = "10.0.0.0/16"
+azs             = ["us-west-2a", "us-west-2b"]
+private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
+desired_capacity = 2
+max_capacity     = 3
+min_capacity     = 1
+instance_type    = "t3.medium"
